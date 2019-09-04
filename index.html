@@ -1,0 +1,160 @@
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="theme-color" content="#000000"/>
+
+    <title>DOT. The LEDCube</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="manifest" href="/manifest.json">
+    <style type="text/css">
+        .custom-file-label{
+            color: #282828;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark static-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">DOT. The LEDCube</a>
+        <!--<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">-->
+        <!--<span class="navbar-toggler-icon"></span>-->
+        <!--</button>-->
+        <!--<div class="collapse navbar-collapse" id="navbarResponsive">-->
+        <!--<ul class="navbar-nav ml-auto">-->
+        <!--<li class="nav-item active">-->
+        <!--<a class="nav-link" href="#upload-image">Upload Image</a>-->
+        <!--</li>-->
+        <!--<li class="nav-item">-->
+        <!--<a class="nav-link" href="#apps">Apps</a>-->
+        <!--</li>-->
+        <!--</ul>-->
+        <!--</div>-->
+    </div>
+</nav>
+
+<!--Image Upload-->
+<div class="container" id="upload-image2">
+    <div class="row">
+        <div class="col-lg-12">
+            <form id="pictureForm" action="util.php?do=uploadPicture" method="post" enctype="multipart/form-data">
+            <h3 class="mt-3 text-center">Image Upload</h3>
+            <p class="text-left">Image needs to be 384*64px <a data-toggle="collapse" href="#collapseExample"
+                                                               role="button" aria-expanded="false"
+                                                               aria-controls="collapseExample">more info...</a></p>
+            <div class="collapse" id="collapseExample">
+                <div class="card card-body mb-2 text-left">
+                    The 384px width represent all six cube sides together in one "line". The order of the six sides is:
+                    Top, Left, Front, Right, Back, Bottom.<br>
+                    You can also create an Image with an height multiplied by 64px. The multiple "lines" of Images will
+                    be displayed in a loop, which can be controlled
+                    by pressing "A" on the joystick or setting an animation speed
+                </div>
+            </div>
+            <div class="input-group mb-2">
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="imageFile" name="image">
+                    <label class="custom-file-label text-left" for="imageFile">Choose file</label>
+                </div>
+            </div>
+            <select class="custom-select mb-2" name="prescaler">
+                <option selected value="1">40 Fps</option>
+                <option value="2">20 Fps</option>
+                <option value="3">13 Fps</option>
+                <option value="4">10 Fps</option>
+                <option value="10">4 Fps</option>
+                <option value="20">2 Fps</option>
+                <option value="40">1 Fps</option>
+                <option value="0">Static</option>
+            </select>
+            <input type="submit" class="btn btn-primary btn-block mb-2" value="Upload & Display">
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- Apps -->
+<div class="container" id="apps">
+    <div class="row">
+        <div class="col-lg-12 text-center">
+            <h3 class="mt-3">Installed Apps</h3>
+            <div id="appscontainer">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap core JavaScript -->
+<script src="js/jquery-3.4.1.min.js"></script>
+<script src="js/bootstrap.bundle.min.js"></script>
+<script lang="js">
+    let appFiles;
+    // let utilURL = "http://10.0.0.5/util.php";
+    // let utilURL = "https://cube11.local/util.php";
+    let utilURL = "/util.php";
+    $.get(utilURL + "/?do=listAppDir", function (data) {
+        appFiles = data;
+        $.each(appFiles["files"], function (index, value) {
+            $("#appscontainer").append("<button type=\"button\" class=\"btn btn-outline-primary btn-lg btn-block\">" + value["file"] + "</button>");
+        });
+        $("#appscontainer button").click(function () {
+            $.get(utilURL + "/?do=run&app=" + this.innerHTML, function (data) {
+            });
+        });
+    });
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                // Registration was successful
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }, function(err) {
+                // registration failed :(
+                console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+    }
+
+    $("#pictureForm").on('submit', (function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: "util.php?do=uploadPicture",
+            type: "POST",
+            data: new FormData(document.getElementById('pictureForm')),
+            contentType: false,
+            cache: false,
+            processData: false,
+            beforeSend: function () {
+                //$("#preview").fadeOut();
+                // $("#err").fadeOut();
+            },
+            success: function (data) {
+                if (data === 'invalid') {
+                    console.log("invalid file");
+                } else {
+                    console.log("upload complete");
+                }
+            },
+            error: function (e) {
+               console.log("error with submitting");
+            }
+        });
+    }));
+
+    $("#imageFile").change(function (e) {
+        $("label[for='imageFile']").text(this.value.split("\\").pop());
+    });
+</script>
+
+</body>
+
+</html>
